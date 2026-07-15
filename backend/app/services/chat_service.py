@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 from app.core.config import Settings
 from app.errors import ApiError
 from app.models import Place, Post
-from app.schemas import ChatHistoryItem, ChatMatchedItem
+from app.schemas import ChatHistoryItem, ChatMatchedItem, RegionCode
 
 
 CATEGORY_KEYWORDS = {
@@ -33,11 +33,20 @@ def _detected_category(message: str) -> str | None:
     return None
 
 
-def find_context(session: Session, message: str, limit: int = 5) -> SearchContext:
+def find_context(
+    session: Session,
+    message: str,
+    region: RegionCode | None = None,
+    limit: int = 5,
+) -> SearchContext:
     category = _detected_category(message)
     search_term = f"%{message.strip()}%"
     place_query = select(Place)
     post_query = select(Post)
+
+    if region:
+        place_query = place_query.where(Place.region == region.value)
+        post_query = post_query.where(Post.region == region.value)
 
     if category:
         place_query = place_query.where(Place.category == category)
@@ -67,7 +76,13 @@ def find_context(session: Session, message: str, limit: int = 5) -> SearchContex
             f"주소: {place.address or '정보 없음'} | 소개: {place.description or '정보 없음'}"
         )
         matched_items.append(
-            ChatMatchedItem(type="PLACE", id=place.id, title=place.name, category=place.category)
+            ChatMatchedItem(
+                type="PLACE",
+                id=place.id,
+                title=place.name,
+                category=place.category,
+                region=place.region,
+            )
         )
     for post in posts:
         lines.append(
@@ -75,7 +90,13 @@ def find_context(session: Session, message: str, limit: int = 5) -> SearchContex
             f"작성자: {post.author} | 내용: {post.content}"
         )
         matched_items.append(
-            ChatMatchedItem(type="POST", id=post.id, title=post.title, category=post.category)
+            ChatMatchedItem(
+                type="POST",
+                id=post.id,
+                title=post.title,
+                category=post.category,
+                region=post.region,
+            )
         )
 
     return SearchContext(prompt_text="\n".join(lines), matched_items=matched_items)
@@ -119,4 +140,3 @@ async def create_answer(
         raise
     except Exception as error:
         raise ApiError(502, "챗봇 응답 생성에 실패했습니다.", "OPENAI_REQUEST_FAILED") from error
-

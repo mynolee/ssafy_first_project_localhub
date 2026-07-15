@@ -14,6 +14,7 @@ from app.schemas import (
     PostDetailResponse,
     PostListResponse,
     PostUpdateRequest,
+    RegionCode,
 )
 
 
@@ -46,10 +47,13 @@ def create_post(
 
 @router.get("", response_model=ApiResponse[list[PostListResponse]])
 def list_posts(
+    region: RegionCode | None = None,
     category: PostCategory | None = None,
     session: Session = Depends(get_db),
 ) -> ApiResponse[list[PostListResponse]]:
     statement = select(Post).order_by(Post.created_at.desc(), Post.id.desc())
+    if region:
+        statement = statement.where(Post.region == region.value)
     if category:
         statement = statement.where(Post.category == category.value)
     posts = session.scalars(statement).all()
@@ -88,4 +92,3 @@ def delete_post(
     session.delete(post)
     session.commit()
     return ApiResponse(data=DeletedPostResponse(id=post_id), message="게시글 삭제 성공")
-

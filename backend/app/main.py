@@ -6,7 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from app.core.config import get_settings
-from app.database import Base, SessionLocal, engine
+from app.database import Base, SessionLocal, engine, migrate_database_schema
 from app.errors import ApiError
 from app.routers import chat, places, posts
 from app.seed import seed_places
@@ -15,8 +15,9 @@ from app.seed import seed_places
 @asynccontextmanager
 async def lifespan(_: FastAPI):
     Base.metadata.create_all(bind=engine)
+    migrate_database_schema()
     with SessionLocal() as session:
-        seed_places(session)
+        seed_places(session, settings.resolved_data_root)
     try:
         yield
     finally:
@@ -70,7 +71,10 @@ async def handle_validation_error(_: Request, error: RequestValidationError) -> 
 
 @app.get("/health")
 def health_check() -> dict[str, str]:
-    return {"status": "ok"}
+    return {
+        "status": "ok",
+        "chatMode": "openai" if settings.openai_api_key else "local-fallback",
+    }
 
 
 app.include_router(places.router)

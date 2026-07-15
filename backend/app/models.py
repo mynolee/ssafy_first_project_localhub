@@ -11,6 +11,7 @@ class Place(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     source_id: Mapped[str] = mapped_column(String(100), unique=True, index=True)
+    region: Mapped[str] = mapped_column(String(30), index=True)
     name: Mapped[str] = mapped_column(String(200), index=True)
     category: Mapped[str] = mapped_column(String(30), index=True)
     address: Mapped[str | None] = mapped_column(String(300))
@@ -28,6 +29,7 @@ class Post(Base):
     __tablename__ = "posts"
 
     id: Mapped[int] = mapped_column(primary_key=True)
+    region: Mapped[str] = mapped_column(String(30), index=True, default="SEOUL")
     category: Mapped[str] = mapped_column(String(20), index=True)
     title: Mapped[str] = mapped_column(String(100), index=True)
     content: Mapped[str] = mapped_column(Text)
@@ -39,4 +41,3 @@ class Post(Base):
         server_default=func.now(),
         onupdate=func.now(),
     )
-

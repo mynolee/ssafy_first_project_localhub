@@ -15,10 +15,9 @@ async def chat(
     request: ChatRequest,
     session: Session = Depends(get_db),
 ) -> ApiResponse[ChatResponse]:
-    context = find_context(session, request.message)
+    context = find_context(session, request.message, request.region)
     answer = await create_answer(get_settings(), request.message, request.history, context)
     return ApiResponse(
         data=ChatResponse(answer=answer, matched_items=context.matched_items),
         message="챗봇 응답 생성 성공",
     )
-

@@ -1,8 +1,10 @@
 import os
 import asyncio
+from pathlib import Path
 
 os.environ["DATABASE_URL"] = "sqlite://"
 os.environ["OPENAI_API_KEY"] = ""
+os.environ["DATA_ROOT"] = str(Path(__file__).parents[1] / "app" / "data")
 
 from httpx import ASGITransport, AsyncClient
 
@@ -15,7 +17,7 @@ def test_places_are_seeded() -> None:
             async with AsyncClient(
                 transport=ASGITransport(app=app), base_url="http://test"
             ) as client:
-                response = await client.get("/api/places?category=TOURIST")
+                response = await client.get("/api/places?region=SEOUL&category=TOURIST")
 
         assert response.status_code == 200
         body = response.json()
@@ -36,6 +38,7 @@ def test_post_crud_and_password_protection() -> None:
                     "/api/posts",
                     json={
                         "category": "RESTAURANT",
+                        "region": "SEOUL",
                         "title": "테스트 맛집",
                         "content": "테스트 게시글입니다.",
                         "author": "테스터",

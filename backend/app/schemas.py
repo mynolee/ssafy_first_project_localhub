@@ -22,6 +22,15 @@ class PostCategory(str, Enum):
     TOURIST = "TOURIST"
     RESTAURANT = "RESTAURANT"
     FESTIVAL = "FESTIVAL"
+    CULTURE = "CULTURE"
+
+
+class RegionCode(str, Enum):
+    SEOUL = "SEOUL"
+    DAEJEON_CHUNGCHEONG = "DAEJEON_CHUNGCHEONG"
+    GUMI_GYEONGBUK = "GUMI_GYEONGBUK"
+    GWANGJU_JEOLLA = "GWANGJU_JEOLLA"
+    BUSAN = "BUSAN"
 
 
 class PlaceCategory(str, Enum):
@@ -58,6 +67,7 @@ class ErrorResponse(CamelModel):
 class PlaceResponse(CamelModel):
     id: int
     source_id: str
+    region: RegionCode
     name: str
     category: str
     address: str | None
@@ -69,6 +79,7 @@ class PlaceResponse(CamelModel):
 
 
 class PostCreateRequest(CamelModel):
+    region: RegionCode
     category: PostCategory
     title: str = Field(min_length=1, max_length=100)
     content: str = Field(min_length=1, max_length=5000)
@@ -78,6 +89,7 @@ class PostCreateRequest(CamelModel):
 
 class PostUpdateRequest(CamelModel):
     password: str = Field(min_length=4, max_length=20)
+    region: RegionCode | None = None
     category: PostCategory | None = None
     title: str | None = Field(default=None, min_length=1, max_length=100)
     content: str | None = Field(default=None, min_length=1, max_length=5000)
@@ -85,7 +97,7 @@ class PostUpdateRequest(CamelModel):
 
     @model_validator(mode="after")
     def require_update_field(self) -> "PostUpdateRequest":
-        if not any((self.category, self.title, self.content, self.author)):
+        if not any((self.region, self.category, self.title, self.content, self.author)):
             raise ValueError("수정할 필드를 하나 이상 입력해 주세요.")
         return self
 
@@ -96,6 +108,7 @@ class PostDeleteRequest(CamelModel):
 
 class PostListResponse(CamelModel):
     id: int
+    region: RegionCode
     category: PostCategory
     title: str
     author: str
@@ -119,6 +132,7 @@ class ChatHistoryItem(CamelModel):
 class ChatRequest(CamelModel):
     message: str = Field(min_length=1, max_length=500)
     history: list[ChatHistoryItem] = Field(default_factory=list, max_length=10)
+    region: RegionCode | None = None
 
 
 class ChatMatchedItem(CamelModel):
@@ -126,9 +140,9 @@ class ChatMatchedItem(CamelModel):
     id: int
     title: str
     category: str | None
+    region: RegionCode
 
 
 class ChatResponse(CamelModel):
     answer: str
     matched_items: list[ChatMatchedItem]
-
