@@ -22,7 +22,7 @@ onMounted(() => {
   if (!messages.value.length) {
     messages.value.push({
       role: 'assistant',
-      content: '안녕하세요! 서울의 관광지, 맛집, 축제와 이웃 게시글을 찾아드릴게요.',
+      content: '안녕하세요! 전국 곳곳의 여행 정보와 이웃 게시글을 찾아드릴게요.',
     })
   }
 })
@@ -63,7 +63,7 @@ async function send() {
       <header class="chat-header">
         <div>
           <span class="status-dot"></span>
-          <strong>서울 동네 도우미</strong>
+          <strong>전국 동네 도우미</strong>
           <small>제공된 지역정보를 바탕으로 답해요</small>
         </div>
         <button class="icon-button" type="button" aria-label="챗봇 닫기" @click="open = false">×</button>
@@ -85,13 +85,13 @@ async function send() {
       </div>
       <form class="chat-form" @submit.prevent="send">
         <label class="sr-only" for="chat-input">질문 입력</label>
-        <input id="chat-input" v-model="input" maxlength="500" placeholder="서울 여행지를 물어보세요" />
+        <input id="chat-input" v-model="input" maxlength="500" placeholder="가고 싶은 여행지를 물어보세요" />
         <button type="submit" :disabled="busy || !input.trim()" aria-label="질문 보내기">↑</button>
       </form>
     </section>
     <button v-else class="chat-toggle" type="button" aria-label="챗봇 열기" @click="open = true">
       <span>✦</span>
-      <strong>서울에 대해 물어보세요</strong>
+      <strong>전국 여행지가 궁금하면 물어보세요</strong>
     </button>
   </aside>
 </template>

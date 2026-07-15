@@ -184,7 +184,16 @@ watch([selectedRegion, selectedCategory], () => {
       </div>
       <div class="board-toolbar">
         <div class="filter-pills" role="group" aria-label="게시판 카테고리">
-          <button v-for="category in POST_CATEGORIES" :key="category.value" :class="{ active: selectedCategory === category.value }" type="button" @click="selectedCategory = category.value">{{ category.label }}</button>
+          <button
+            v-for="category in POST_CATEGORIES"
+            :key="category.value"
+            :class="[
+              { active: selectedCategory === category.value },
+              category.value ? `category-filter-${category.value.toLowerCase()}` : 'category-filter-all'
+            ]"
+            type="button"
+            @click="selectedCategory = category.value"
+          >{{ category.label }}</button>
         </div>
         <span>총 {{ posts.length }}개의 이야기</span>
       </div>
