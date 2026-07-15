@@ -1,6 +1,6 @@
 # LocalHub
 
-서울 공공데이터 기반 지역 정보 조회, 익명 커뮤니티, AI 챗봇을 제공하는 팀 프로젝트입니다.
+전국 5개 권역 공공데이터 기반 지역 정보 조회, 익명 커뮤니티, AI 챗봇을 제공하는 팀 프로젝트입니다.
 
 ## 기술 스택
 
@@ -31,8 +31,8 @@ npm.cmd run dev
 
 ## 주요 기능
 
-- 서울 지역정보 카드와 Leaflet/OpenStreetMap 지도 마커
-- 관광지·맛집·축제 카테고리별 익명 게시판 CRUD
+- 5개 권역 지역정보 카드와 Leaflet/OpenStreetMap 지도 마커
+- 지역 필터와 관광지·맛집·축제·문화시설 익명 게시판 CRUD
 - 작성 비밀번호를 통한 게시글 수정·삭제 확인
 - 지역정보와 게시글만 근거로 답하는 플로팅 챗봇
 - 모바일 반응형 화면과 세션 단위 대화 기록
@@ -41,9 +41,9 @@ npm.cmd run dev
 
 | Method | Path | 기능 |
 | --- | --- | --- |
-| `GET` | `/api/places` | 지역정보 목록과 카테고리 필터 |
+| `GET` | `/api/places` | 지역정보 목록과 지역·카테고리 필터 |
 | `POST` | `/api/posts` | 게시글 작성 |
-| `GET` | `/api/posts` | 게시글 목록 |
+| `GET` | `/api/posts` | 게시글 목록과 지역·카테고리 필터 |
 | `GET` | `/api/posts/{id}` | 게시글 상세 |
 | `PATCH` | `/api/posts/{id}` | 비밀번호 확인 후 수정 |
 | `DELETE` | `/api/posts/{id}` | 비밀번호 확인 후 삭제 |
@@ -65,6 +65,6 @@ npm.cmd run build
 - `render.yaml`: `backend`를 Render Web Service로 실행합니다.
 - Netlify에는 `VITE_API_BASE_URL`, Render에는 `OPENAI_API_KEY`와 `FRONTEND_ORIGIN`을 환경변수로 등록해야 합니다.
 - SQLite 파일은 Git에서 제외됩니다. 시연 또는 제출용 DB는 백엔드를 한 번 실행해 생성한 뒤 별도 산출물로 제출합니다.
+- 백엔드 최초 실행 시 `data/`의 TourAPI JSON 12,702건을 `backend/localhub.db`에 자동 적재합니다. 기존 게시글은 보존됩니다.
 
 상세 범위와 데이터 교체 절차는 [기능 명세서](docs/FUNCTIONAL_SPEC.md)를 참고하세요.
-
