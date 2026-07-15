@@ -1,0 +1,2 @@
+"""LocalHub backend application package."""
+

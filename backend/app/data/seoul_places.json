@@ -1,0 +1,87 @@
+[
+  {
+    "source_id": "SAMPLE-TOURIST-001",
+    "name": "경복궁",
+    "category": "TOURIST",
+    "address": "서울특별시 종로구 사직로 161",
+    "latitude": 37.5796,
+    "longitude": 126.977,
+    "description": "조선 왕조의 법궁으로 서울의 대표적인 역사 관광지입니다.",
+    "image_url": null,
+    "phone": "02-3700-3900",
+    "source": "LocalHub 개발용 샘플",
+    "license": "원본 공공데이터 수령 후 교체 필요",
+    "collected_at": "2026-07-15"
+  },
+  {
+    "source_id": "SAMPLE-TOURIST-002",
+    "name": "남산서울타워",
+    "category": "TOURIST",
+    "address": "서울특별시 용산구 남산공원길 105",
+    "latitude": 37.5512,
+    "longitude": 126.9882,
+    "description": "서울 도심을 한눈에 조망할 수 있는 전망 명소입니다.",
+    "image_url": null,
+    "phone": null,
+    "source": "LocalHub 개발용 샘플",
+    "license": "원본 공공데이터 수령 후 교체 필요",
+    "collected_at": "2026-07-15"
+  },
+  {
+    "source_id": "SAMPLE-CULTURE-001",
+    "name": "국립중앙박물관",
+    "category": "CULTURE",
+    "address": "서울특별시 용산구 서빙고로 137",
+    "latitude": 37.5239,
+    "longitude": 126.9803,
+    "description": "한국의 역사와 문화를 폭넓게 만날 수 있는 문화시설입니다.",
+    "image_url": null,
+    "phone": "02-2077-9000",
+    "source": "LocalHub 개발용 샘플",
+    "license": "원본 공공데이터 수령 후 교체 필요",
+    "collected_at": "2026-07-15"
+  },
+  {
+    "source_id": "SAMPLE-FESTIVAL-001",
+    "name": "서울빛초롱축제",
+    "category": "FESTIVAL",
+    "address": "서울특별시 종로구 청계천 일대",
+    "latitude": 37.569,
+    "longitude": 126.9784,
+    "description": "청계천 일대를 빛 조형물로 꾸미는 서울의 겨울 축제입니다.",
+    "image_url": null,
+    "phone": null,
+    "source": "LocalHub 개발용 샘플",
+    "license": "원본 공공데이터 수령 후 교체 필요",
+    "collected_at": "2026-07-15"
+  },
+  {
+    "source_id": "SAMPLE-RESTAURANT-001",
+    "name": "광장시장 먹거리 골목",
+    "category": "RESTAURANT",
+    "address": "서울특별시 종로구 창경궁로 88",
+    "latitude": 37.5701,
+    "longitude": 126.9996,
+    "description": "다양한 서울 전통 먹거리를 경험할 수 있는 시장입니다.",
+    "image_url": null,
+    "phone": null,
+    "source": "LocalHub 개발용 샘플",
+    "license": "원본 공공데이터 수령 후 교체 필요",
+    "collected_at": "2026-07-15"
+  },
+  {
+    "source_id": "SAMPLE-SHOPPING-001",
+    "name": "동대문디자인플라자",
+    "category": "SHOPPING",
+    "address": "서울특별시 중구 을지로 281",
+    "latitude": 37.5665,
+    "longitude": 127.0092,
+    "description": "전시, 행사, 디자인 쇼핑을 함께 즐길 수 있는 복합문화공간입니다.",
+    "image_url": null,
+    "phone": "02-2153-0000",
+    "source": "LocalHub 개발용 샘플",
+    "license": "원본 공공데이터 수령 후 교체 필요",
+    "collected_at": "2026-07-15"
+  }
+]
+
