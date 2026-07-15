@@ -49,13 +49,21 @@ async def handle_api_error(_: Request, error: ApiError) -> JSONResponse:
 
 @app.exception_handler(RequestValidationError)
 async def handle_validation_error(_: Request, error: RequestValidationError) -> JSONResponse:
+    details = [
+        {
+            "type": item["type"],
+            "location": [str(part) for part in item["loc"]],
+            "message": item["msg"],
+        }
+        for item in error.errors()
+    ]
     return JSONResponse(
         status_code=422,
         content={
             "success": False,
             "data": None,
             "message": "요청 값을 확인해 주세요.",
-            "error": {"code": "VALIDATION_ERROR", "details": error.errors()},
+            "error": {"code": "VALIDATION_ERROR", "details": details},
         },
     )
 

@@ -60,6 +60,13 @@ def test_post_crud_and_password_protection() -> None:
                 assert updated.status_code == 200
                 assert updated.json()["data"]["title"] == "수정 성공"
 
+                invalid = await client.patch(
+                    f"/api/posts/{post_id}",
+                    json={"password": "1234"},
+                )
+                assert invalid.status_code == 422
+                assert invalid.json()["error"]["code"] == "VALIDATION_ERROR"
+
                 deleted = await client.request(
                     "DELETE",
                     f"/api/posts/{post_id}",
