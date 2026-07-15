@@ -1,6 +1,14 @@
+import logging
 from dataclasses import dataclass
 
-from openai import AsyncOpenAI, RateLimitError
+from openai import (
+    APIConnectionError,
+    AsyncOpenAI,
+    AuthenticationError,
+    NotFoundError,
+    PermissionDeniedError,
+    RateLimitError,
+)
 from sqlalchemy import or_, select
 from sqlalchemy.orm import Session
 
@@ -8,6 +16,8 @@ from app.core.config import Settings
 from app.errors import ApiError
 from app.models import Place, Post
 from app.schemas import ChatHistoryItem, ChatMatchedItem, RegionCode
+
+logger = logging.getLogger(__name__)
 
 
 CATEGORY_KEYWORDS = {
@@ -17,6 +27,14 @@ CATEGORY_KEYWORDS = {
     "CULTURE": ("문화", "박물관", "미술관", "전시"),
     "SHOPPING": ("쇼핑", "시장"),
     "ACCOMMODATION": ("숙박", "호텔", "잠잘"),
+}
+
+REGION_KEYWORDS = {
+    "SEOUL": ("서울",),
+    "BUSAN": ("부산",),
+    "DAEJEON_CHUNGCHEONG": ("대전", "충청", "충남", "충북"),
+    "GUMI_GYEONGBUK": ("구미", "경북", "경상북도"),
+    "GWANGJU_JEOLLA": ("광주", "전라", "전남", "전북"),
 }
 
 
@@ -33,6 +51,13 @@ def _detected_category(message: str) -> str | None:
     return None
 
 
+def _detected_region(message: str) -> str | None:
+    for region_code, keywords in REGION_KEYWORDS.items():
+        if any(keyword in message for keyword in keywords):
+            return region_code
+    return None
+
+
 def find_context(
     session: Session,
     message: str,
@@ -40,13 +65,14 @@ def find_context(
     limit: int = 5,
 ) -> SearchContext:
     category = _detected_category(message)
+    region_value = _detected_region(message) or (region.value if region else None)
     search_term = f"%{message.strip()}%"
     place_query = select(Place)
     post_query = select(Post)
 
-    if region:
-        place_query = place_query.where(Place.region == region.value)
-        post_query = post_query.where(Post.region == region.value)
+    if region_value:
+        place_query = place_query.where(Place.region == region_value)
+        post_query = post_query.where(Post.region == region_value)
 
     if category:
         place_query = place_query.where(Place.category == category)
@@ -131,12 +157,27 @@ async def create_answer(
         response = await AsyncOpenAI(api_key=settings.openai_api_key).chat.completions.create(
             model=settings.openai_model,
             messages=messages,
-            temperature=0.2,
         )
         return response.choices[0].message.content or fallback_answer(context)
     except RateLimitError as error:
+        logger.exception("OpenAI rate limit exceeded")
         raise ApiError(429, "OpenAI API 요청 한도를 초과했습니다.", "OPENAI_RATE_LIMIT") from error
+    except AuthenticationError as error:
+        logger.exception("OpenAI authentication failed (invalid or revoked API key)")
+        raise ApiError(502, "OpenAI API 키 인증에 실패했습니다. 키 값을 확인해 주세요.", "OPENAI_AUTH_FAILED") from error
+    except PermissionDeniedError as error:
+        logger.exception("OpenAI permission denied (key lacks access to model %s)", settings.openai_model)
+        raise ApiError(
+            502, f"이 API 키로는 '{settings.openai_model}' 모델을 사용할 수 없습니다.", "OPENAI_PERMISSION_DENIED"
+        ) from error
+    except NotFoundError as error:
+        logger.exception("OpenAI model not found: %s", settings.openai_model)
+        raise ApiError(502, f"'{settings.openai_model}' 모델을 찾을 수 없습니다.", "OPENAI_MODEL_NOT_FOUND") from error
+    except APIConnectionError as error:
+        logger.exception("Failed to connect to OpenAI API")
+        raise ApiError(502, "OpenAI 서버에 연결하지 못했습니다. 네트워크 상태를 확인해 주세요.", "OPENAI_CONNECTION_FAILED") from error
     except ApiError:
         raise
     except Exception as error:
+        logger.exception("Unexpected error while generating chat answer")
         raise ApiError(502, "챗봇 응답 생성에 실패했습니다.", "OPENAI_REQUEST_FAILED") from error

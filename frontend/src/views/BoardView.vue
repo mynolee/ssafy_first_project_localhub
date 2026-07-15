@@ -5,6 +5,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { postsApi } from '../api/localhub'
 import { errorMessage } from '../api/client'
 import CategoryBadge from '../components/CategoryBadge.vue'
+import PasswordDialog from '../components/PasswordDialog.vue'
 import { POST_CATEGORIES, REGION_LABELS, REGIONS } from '../constants/categories'
 import PostForm from '../components/PostForm.vue'
 
@@ -18,6 +19,19 @@ const loading = ref(false)
 const error = ref('')
 const formBusy = ref(false)
 const formError = ref('')
+
+const expandedId = ref(null)
+const activePost = ref(null)
+const detailLoading = ref(false)
+const detailError = ref('')
+
+const editingId = ref(null)
+const editBusy = ref(false)
+const editError = ref('')
+
+const dialogOpen = ref(false)
+const deleting = ref(false)
+const deleteError = ref('')
 
 async function loadPosts() {
   loading.value = true
@@ -48,16 +62,104 @@ async function createPost(payload) {
   }
 }
 
+async function loadDetail(id) {
+  detailLoading.value = true
+  detailError.value = ''
+  try {
+    activePost.value = await postsApi.get(id)
+  } catch (requestError) {
+    detailError.value = errorMessage(requestError, '게시글을 불러오지 못했습니다.')
+  } finally {
+    detailLoading.value = false
+  }
+}
+
+function closeExpand() {
+  expandedId.value = null
+  activePost.value = null
+  editingId.value = null
+  editError.value = ''
+  if (route.params.id) router.replace('/posts')
+}
+
+function toggleExpand(post) {
+  if (expandedId.value === post.id) {
+    closeExpand()
+    return
+  }
+  expandedId.value = post.id
+  editingId.value = null
+  router.replace(`/posts/${post.id}`)
+  loadDetail(post.id)
+}
+
+function startEdit() {
+  editingId.value = expandedId.value
+  editError.value = ''
+  router.replace(`/posts/${expandedId.value}/edit`)
+}
+
+function cancelEdit() {
+  editingId.value = null
+  router.replace(`/posts/${expandedId.value}`)
+}
+
+async function saveEdit(payload) {
+  editBusy.value = true
+  editError.value = ''
+  try {
+    activePost.value = await postsApi.update(expandedId.value, payload)
+    editingId.value = null
+    router.replace(`/posts/${expandedId.value}`)
+    await loadPosts()
+  } catch (requestError) {
+    editError.value = errorMessage(requestError, '게시글을 저장하지 못했습니다.')
+  } finally {
+    editBusy.value = false
+  }
+}
+
+function openDeleteDialog() {
+  deleteError.value = ''
+  dialogOpen.value = true
+}
+
+async function removePost(password) {
+  deleting.value = true
+  deleteError.value = ''
+  try {
+    await postsApi.remove(expandedId.value, password)
+    dialogOpen.value = false
+    closeExpand()
+    await loadPosts()
+  } catch (requestError) {
+    deleteError.value = errorMessage(requestError)
+  } finally {
+    deleting.value = false
+  }
+}
+
 function formatDate(value) {
   return new Intl.DateTimeFormat('ko-KR', { dateStyle: 'medium' }).format(new Date(value))
 }
 
 onMounted(() => {
   if (route.query.compose) showForm.value = true
+  if (route.params.id) {
+    const id = Number(route.params.id)
+    expandedId.value = id
+    if (route.name === 'post-edit') editingId.value = id
+    loadDetail(id)
+  }
   loadPosts()
 })
+
 watch([selectedRegion, selectedCategory], () => {
+  expandedId.value = null
+  activePost.value = null
+  editingId.value = null
   router.replace({
+    path: '/posts',
     query: {
       ...(selectedRegion.value ? { region: selectedRegion.value } : {}),
       ...(route.query.saved ? { saved: route.query.saved } : {}),
@@ -98,17 +200,44 @@ watch([selectedRegion, selectedCategory], () => {
       <p v-if="error" class="notice error-notice">{{ error }}</p>
       <div v-else-if="loading" class="loading-state">이웃 이야기를 불러오고 있어요...</div>
       <div v-else-if="posts.length" class="post-list card">
-        <RouterLink v-for="post in posts" :key="post.id" class="post-row" :to="`/posts/${post.id}`">
-          <span class="post-number">{{ String(post.id).padStart(2, '0') }}</span>
-          <div class="post-row-main">
-            <div class="post-badges"><span class="region-badge">{{ REGION_LABELS[post.region] }}</span><CategoryBadge :category="post.category" /></div>
-            <h2>{{ post.title }}</h2>
+        <div v-for="post in posts" :key="post.id" class="post-item">
+          <button type="button" class="post-row" :class="{ active: expandedId === post.id }" @click="toggleExpand(post)">
+            <span class="post-number">{{ String(post.id).padStart(2, '0') }}</span>
+            <div class="post-row-main">
+              <div class="post-badges"><span class="region-badge">{{ REGION_LABELS[post.region] }}</span><CategoryBadge :category="post.category" /></div>
+              <h2>{{ post.title }}</h2>
+            </div>
+            <div class="post-meta"><span>{{ post.author }}</span><time>{{ formatDate(post.createdAt) }}</time></div>
+            <span class="row-arrow">{{ expandedId === post.id ? '↑' : '→' }}</span>
+          </button>
+
+          <div v-if="expandedId === post.id" class="post-expand">
+            <div v-if="detailLoading" class="loading-state">글을 불러오고 있어요...</div>
+            <p v-else-if="detailError" class="notice error-notice">{{ detailError }}</p>
+            <template v-else-if="activePost">
+              <PostForm
+                v-if="editingId === post.id"
+                :initial-post="activePost"
+                editing
+                :busy="editBusy"
+                :error="editError"
+                @submit="saveEdit"
+                @cancel="cancelEdit"
+              />
+              <template v-else>
+                <div class="detail-meta"><strong>{{ activePost.author }}</strong><span>·</span><time>{{ formatDate(activePost.createdAt) }}</time></div>
+                <div class="post-content">{{ activePost.content }}</div>
+                <div class="post-actions">
+                  <button class="button button-secondary" type="button" @click="startEdit">수정</button>
+                  <button class="button button-danger-ghost" type="button" @click="openDeleteDialog">삭제</button>
+                </div>
+              </template>
+            </template>
           </div>
-          <div class="post-meta"><span>{{ post.author }}</span><time>{{ formatDate(post.createdAt) }}</time></div>
-          <span class="row-arrow">→</span>
-        </RouterLink>
+        </div>
       </div>
       <div v-else class="empty-state card"><h2>아직 이야기가 없습니다</h2><p>우리 지역에서의 첫 경험을 이웃에게 알려주세요.</p><button class="button" type="button" @click="showForm = true">첫 글 쓰기</button></div>
     </div>
   </section>
+  <PasswordDialog :open="dialogOpen" :busy="deleting" :error="deleteError" @close="dialogOpen = false" @confirm="removePost" />
 </template>
