@@ -40,6 +40,11 @@ class Settings(BaseSettings):
             return Path(self.data_root).resolve()
         return Path(__file__).resolve().parents[3] / "data"
 
+    @property
+    def resolved_uploads_root(self) -> Path:
+        backend_root = Path(__file__).resolve().parents[2]
+        return backend_root / "uploads"
+
 
 @lru_cache
 def get_settings() -> Settings:

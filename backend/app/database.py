@@ -25,12 +25,15 @@ SessionLocal = sessionmaker(bind=engine, autoflush=False, expire_on_commit=False
 def migrate_database_schema() -> None:
     """Apply the small additive migrations required by the local SQLite MVP."""
     inspector = inspect(engine)
-    migrations = {
-        "places": ("region", "ALTER TABLE places ADD COLUMN region VARCHAR(30) NOT NULL DEFAULT 'SEOUL'"),
-        "posts": ("region", "ALTER TABLE posts ADD COLUMN region VARCHAR(30) NOT NULL DEFAULT 'SEOUL'"),
-    }
+    migrations = [
+        ("places", "region", "ALTER TABLE places ADD COLUMN region VARCHAR(30) NOT NULL DEFAULT 'SEOUL'"),
+        ("posts", "region", "ALTER TABLE posts ADD COLUMN region VARCHAR(30) NOT NULL DEFAULT 'SEOUL'"),
+        ("posts", "view_count", "ALTER TABLE posts ADD COLUMN view_count INTEGER NOT NULL DEFAULT 0"),
+        ("posts", "like_count", "ALTER TABLE posts ADD COLUMN like_count INTEGER NOT NULL DEFAULT 0"),
+        ("posts", "image_url", "ALTER TABLE posts ADD COLUMN image_url VARCHAR(300)"),
+    ]
     with engine.begin() as connection:
-        for table_name, (column_name, statement) in migrations.items():
+        for table_name, column_name, statement in migrations:
             if table_name not in inspector.get_table_names():
                 continue
             columns = {column["name"] for column in inspector.get_columns(table_name)}

@@ -116,16 +116,29 @@ class PostListResponse(CamelModel):
     category: PostCategory
     title: str
     author: str
+    view_count: int
+    like_count: int
     created_at: datetime
     updated_at: datetime
 
 
 class PostDetailResponse(PostListResponse):
     content: str
+    image_url: str | None
 
 
 class DeletedPostResponse(CamelModel):
     id: int
+
+
+class PostImageResponse(CamelModel):
+    id: int
+    image_url: str | None
+
+
+class PostLikeResponse(CamelModel):
+    id: int
+    like_count: int
 
 
 class ChatHistoryItem(CamelModel):
