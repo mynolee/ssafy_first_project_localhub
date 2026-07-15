@@ -28,6 +28,20 @@ def test_places_are_seeded() -> None:
     asyncio.run(scenario())
 
 
+def test_local_frontend_origins_are_allowed() -> None:
+    async def scenario() -> None:
+        async with app.router.lifespan_context(app):
+            async with AsyncClient(
+                transport=ASGITransport(app=app), base_url="http://test"
+            ) as client:
+                for origin in ("http://localhost:5173", "http://127.0.0.1:5173"):
+                    response = await client.get("/api/posts", headers={"Origin": origin})
+                    assert response.status_code == 200
+                    assert response.headers["access-control-allow-origin"] == origin
+
+    asyncio.run(scenario())
+
+
 def test_post_crud_and_password_protection() -> None:
     async def scenario() -> None:
         async with app.router.lifespan_context(app):

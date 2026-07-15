@@ -20,7 +20,11 @@ class Settings(BaseSettings):
 
     @property
     def allowed_origins(self) -> list[str]:
-        return [origin.strip() for origin in self.frontend_origin.split(",") if origin.strip()]
+        origins = {origin.strip() for origin in self.frontend_origin.split(",") if origin.strip()}
+        local_origins = {"http://localhost:5173", "http://127.0.0.1:5173"}
+        if origins & local_origins:
+            origins.update(local_origins)
+        return sorted(origins)
 
     @property
     def resolved_database_url(self) -> str:
