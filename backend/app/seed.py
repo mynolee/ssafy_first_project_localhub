@@ -33,6 +33,27 @@ def _optional_text(value: Any) -> str | None:
     return text or None
 
 
+def _is_valid_place_name(name: str) -> bool:
+    """Check if a place name seems valid and not corrupted."""
+    if not name:
+        return False
+    # Filter out suspicious names with unusual patterns
+    suspicious_patterns = [
+        '국호',  # 국호 37호선 같은 이상한 항목
+        '국도',  # 국도 37호선 같은 도로명
+        '급치산',  # 이상한 장소명
+        '037',  # 라인 번호 같은 항목
+        '9999',  # 플레이스홀더
+    ]
+    for pattern in suspicious_patterns:
+        if pattern in name:
+            return False
+    # Check for reasonable length
+    if len(name) < 2 or len(name) > 100:
+        return False
+    return True
+
+
 def _optional_float(value: Any) -> float | None:
     try:
         return float(value) if str(value or "").strip() else None
@@ -53,7 +74,7 @@ def _tour_api_records(data_root: Path) -> list[dict[str, Any]]:
         for item in payload.get("items", []):
             content_id = _optional_text(item.get("contentid"))
             title = _optional_text(item.get("title"))
-            if not content_id or not title:
+            if not content_id or not title or not _is_valid_place_name(title):
                 continue
             address_parts = filter(
                 None,
@@ -94,6 +115,12 @@ def seed_places(session: Session, data_root: Path) -> int:
     if not records:
         return 0
 
+    # Remove corrupted records from database
+    from app.models import Place
+    suspicious_names = ['국호', '국도', '급치산', '037', '9999']
+    for pattern in suspicious_names:
+        session.execute(delete(Place).where(Place.name.like(f"%{pattern}%")))
+    
     session.execute(delete(Place).where(Place.source_id.like("SAMPLE-%")))
     existing_ids = set(session.scalars(select(Place.source_id)))
     new_records = [record for record in records if record["source_id"] not in existing_ids]

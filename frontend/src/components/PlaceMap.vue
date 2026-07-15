@@ -4,6 +4,22 @@ import L from 'leaflet'
 
 import { CATEGORY_LABELS } from '../constants/categories'
 
+// 카테고리별 색상 정의
+const CATEGORY_COLORS = {
+  TOURIST: '#e85d3f',     // 주황색 - 관광지
+  RESTAURANT: '#d5a63c',  // 노란색 - 맛집
+  FESTIVAL: '#ff6b9d',    // 핑크 - 축제
+  CULTURE: '#5b5bff',     // 파란색 - 문화
+  COURSE: '#00bfa5',      // 청록색 - 코스
+  LEISURE: '#9c27b0',     // 보라색 - 여가
+  ACCOMMODATION: '#ff7043',// 밝은 주황 - 숙박
+  SHOPPING: '#29b6f6',    // 연한 파란색 - 쇼핑
+}
+
+function getCategoryColor(category) {
+  return CATEGORY_COLORS[category] || '#e85d3f'
+}
+
 const props = defineProps({
   places: { type: Array, default: () => [] },
   selectedPlaceId: { type: Number, default: null },
@@ -39,20 +55,49 @@ function restoreMapView() {
 
 function updateMarkerHighlight(placeId) {
   markerByPlaceId.forEach((marker, id) => {
+    const place = props.places.find(p => p.id === id)
+    const isSelected = id === placeId
     marker.setStyle({
-      radius: id === placeId ? 10 : 9,
+      radius: isSelected ? 10 : 9,
       color: '#ffffff',
-      weight: id === placeId ? 4 : 3,
-      fillColor: id === placeId ? '#1d5b49' : '#e85d3f',
+      weight: isSelected ? 4 : 3,
+      fillColor: isSelected ? '#1d5b49' : getCategoryColor(place?.category),
       fillOpacity: 1,
     })
   })
 }
 
+function calculateOptimalBounds() {
+  if (!map || !markerLayer) return
+  const bounds = []
+  props.places
+    .filter((place) => place.latitude != null && place.longitude != null)
+    .forEach((place) => {
+      bounds.push([place.latitude, place.longitude])
+    })
+  
+  if (bounds.length === 0) return
+  
+  // Seoul의 중심을 기준으로 적절한 범위 내의 마커만 선택
+  const seoulCenter = [37.5665, 126.978]
+  const maxDistance = 0.15 // 약 15km 범위
+  
+  const filteredBounds = bounds.filter(coord => {
+    const latDiff = Math.abs(coord[0] - seoulCenter[0])
+    const lngDiff = Math.abs(coord[1] - seoulCenter[1])
+    return latDiff < maxDistance && lngDiff < maxDistance
+  })
+  
+  if (filteredBounds.length > 0) {
+    map.fitBounds(filteredBounds, { padding: [35, 35], maxZoom: 13 })
+  } else if (bounds.length > 0) {
+    map.fitBounds(bounds, { padding: [35, 35], maxZoom: 13 })
+  }
+}
+
 function drawMarkers() {
   if (!map || !markerLayer) return
   markerLayer.clearLayers()
-  const bounds = []
   markerByPlaceId = new Map()
   props.places
     .filter((place) => place.latitude != null && place.longitude != null)
@@ -62,7 +107,7 @@ function drawMarkers() {
         radius: 9,
         color: '#ffffff',
         weight: 3,
-        fillColor: '#e85d3f',
+        fillColor: getCategoryColor(place.category),
         fillOpacity: 1,
       })
       marker.bindPopup(
@@ -74,9 +119,8 @@ function drawMarkers() {
       })
       marker.addTo(markerLayer)
       markerByPlaceId.set(place.id, marker)
-      bounds.push(coordinates)
     })
-  if (bounds.length) map.fitBounds(bounds, { padding: [35, 35], maxZoom: 13 })
+  calculateOptimalBounds()
 }
 
 onMounted(async () => {
