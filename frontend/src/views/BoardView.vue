@@ -6,14 +6,18 @@ import { postsApi } from '../api/localhub'
 import { errorMessage } from '../api/client'
 import CategoryBadge from '../components/CategoryBadge.vue'
 import { POST_CATEGORIES, REGION_LABELS, REGIONS } from '../constants/categories'
+import PostForm from '../components/PostForm.vue'
 
 const route = useRoute()
 const router = useRouter()
 const posts = ref([])
 const selectedCategory = ref('')
+const showForm = ref(false)
 const selectedRegion = ref(typeof route.query.region === 'string' ? route.query.region : '')
 const loading = ref(false)
 const error = ref('')
+const formBusy = ref(false)
+const formError = ref('')
 
 async function loadPosts() {
   loading.value = true
@@ -30,11 +34,28 @@ async function loadPosts() {
   }
 }
 
+async function createPost(payload) {
+  formBusy.value = true
+  formError.value = ''
+  try {
+    await postsApi.create(payload)
+    showForm.value = false
+    await loadPosts()
+  } catch (requestError) {
+    formError.value = errorMessage(requestError, '게시글을 저장하지 못했습니다.')
+  } finally {
+    formBusy.value = false
+  }
+}
+
 function formatDate(value) {
   return new Intl.DateTimeFormat('ko-KR', { dateStyle: 'medium' }).format(new Date(value))
 }
 
-onMounted(loadPosts)
+onMounted(() => {
+  if (route.query.compose) showForm.value = true
+  loadPosts()
+})
 watch([selectedRegion, selectedCategory], () => {
   router.replace({
     query: {
@@ -50,7 +71,7 @@ watch([selectedRegion, selectedCategory], () => {
   <section id="community" class="page-hero compact main-board-hero">
     <div class="container page-hero-inner">
       <div><p class="eyebrow">LOCAL COMMUNITY</p><h1>지역 게시판</h1><p>전국에서 발견한 좋은 장소와 유용한 경험을 익명으로 나눠보세요.</p></div>
-      <RouterLink class="button" to="/posts/new">새 이야기 쓰기</RouterLink>
+      <button class="button" type="button" @click="showForm = true">새 이야기 쓰기</button>
     </div>
   </section>
   <section class="section board-section main-board-section">
@@ -65,6 +86,15 @@ watch([selectedRegion, selectedCategory], () => {
         </div>
         <span>총 {{ posts.length }}개의 이야기</span>
       </div>
+      <PostForm
+        v-if="showForm"
+        :initial-post="null"
+        :editing="false"
+        :busy="formBusy"
+        :error="formError"
+        @submit="createPost"
+        @cancel="showForm = false"
+      />
       <p v-if="error" class="notice error-notice">{{ error }}</p>
       <div v-else-if="loading" class="loading-state">이웃 이야기를 불러오고 있어요...</div>
       <div v-else-if="posts.length" class="post-list card">
@@ -78,7 +108,7 @@ watch([selectedRegion, selectedCategory], () => {
           <span class="row-arrow">→</span>
         </RouterLink>
       </div>
-      <div v-else class="empty-state card"><h2>아직 이야기가 없습니다</h2><p>우리 지역에서의 첫 경험을 이웃에게 알려주세요.</p><RouterLink class="button" to="/posts/new">첫 글 쓰기</RouterLink></div>
+      <div v-else class="empty-state card"><h2>아직 이야기가 없습니다</h2><p>우리 지역에서의 첫 경험을 이웃에게 알려주세요.</p><button class="button" type="button" @click="showForm = true">첫 글 쓰기</button></div>
     </div>
   </section>
 </template>

@@ -15,6 +15,13 @@ async function goToSection(sectionId) {
   await nextTick()
   document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth' })
 }
+
+async function goToCompose() {
+  closeMenu()
+  await router.push({ name: 'home', hash: '#community', query: { compose: '1' } })
+  await nextTick()
+  document.getElementById('community')?.scrollIntoView({ behavior: 'smooth' })
+}
 </script>
 
 <template>
@@ -36,7 +43,7 @@ async function goToSection(sectionId) {
       <nav :class="['main-nav', { open: menuOpen }]" aria-label="주요 메뉴">
         <button class="nav-section-button" type="button" @click="goToSection('community')">지역 게시판</button>
         <button class="nav-section-button" type="button" @click="goToSection('discover')">지역 지도</button>
-        <RouterLink class="button button-small" to="/posts/new" @click="closeMenu">글쓰기</RouterLink>
+        <button class="button button-small" type="button" @click="goToCompose">글쓰기</button>
       </nav>
     </div>
   </header>

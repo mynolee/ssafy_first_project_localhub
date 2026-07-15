@@ -9,7 +9,7 @@ const props = defineProps({
   busy: Boolean,
   error: { type: String, default: '' },
 })
-const emit = defineEmits(['submit'])
+const emit = defineEmits(['submit','cancel'])
 const form = reactive({
   region: 'SEOUL',
   category: 'TOURIST',
@@ -78,7 +78,7 @@ function submit() {
     </div>
     <p v-if="error" class="form-error">{{ error }}</p>
     <div class="form-actions">
-      <RouterLink class="button button-secondary" :to="editing ? `/posts/${initialPost?.id}` : '/posts'">취소</RouterLink>
+      <button class="button button-secondary" @click="emit('cancel')">취소</button>
       <button class="button" type="submit" :disabled="busy">
         {{ busy ? '저장 중...' : editing ? '수정 완료' : '글 등록' }}
       </button>
