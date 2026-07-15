@@ -85,8 +85,17 @@ h1, h2, h3, p { margin-top: 0; }
 .section-heading h2 { margin-bottom: 0; font-family: 'DM Serif Display', 'Noto Sans KR', serif; font-size: clamp(2.3rem, 4vw, 3.5rem); font-weight: 400; line-height: 1.15; }
 .section-heading > p { max-width: 390px; color: var(--muted); line-height: 1.7; }
 .filter-pills { display: flex; flex-wrap: wrap; gap: 9px; }
-.filter-pills button { padding: 9px 17px; border: 1px solid var(--line); border-radius: 999px; color: var(--muted); background: #fff; }
-.filter-pills button:hover, .filter-pills button.active { border-color: var(--green); color: #fff; background: var(--green); }
+.filter-pills button { padding: 9px 17px; border: 1px solid var(--line); border-radius: 999px; color: var(--muted); background: #fff; transition: .2s; }
+.filter-pills button:hover, .filter-pills button.active { color: #fff; }
+/* 카테고리별 필터 색상 */
+.category-filter-tourist:hover, .category-filter-tourist.active { border-color: #e85d3f; background: #e85d3f; }
+.category-filter-restaurant:hover, .category-filter-restaurant.active { border-color: #d5a63c; background: #d5a63c; }
+.category-filter-festival:hover, .category-filter-festival.active { border-color: #ff6b9d; background: #ff6b9d; }
+.category-filter-culture:hover, .category-filter-culture.active { border-color: #5b5bff; background: #5b5bff; }
+.category-filter-course:hover, .category-filter-course.active { border-color: #00bfa5; background: #00bfa5; }
+.category-filter-leisure:hover, .category-filter-leisure.active { border-color: #9c27b0; background: #9c27b0; }
+.category-filter-accommodation:hover, .category-filter-accommodation.active { border-color: #ff7043; background: #ff7043; }
+.category-filter-shopping:hover, .category-filter-shopping.active { border-color: #29b6f6; background: #29b6f6; }
 .region-filter { display: flex; flex-wrap: wrap; gap: 10px; margin: 0 0 20px; padding: 8px; border: 1px solid var(--line); border-radius: 14px; background: #fff; }
 .region-filter button { flex: 1; min-width: 95px; padding: 11px 14px; border: 0; border-radius: 9px; color: var(--muted); background: transparent; font-weight: 700; }
 .region-filter button:hover, .region-filter button.active { color: #fff; background: var(--green); }

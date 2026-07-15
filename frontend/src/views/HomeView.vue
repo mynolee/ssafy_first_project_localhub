@@ -74,8 +74,11 @@ watch([selectedRegion, selectedCategory], loadPlaces)
       <div class="filter-pills map-category-filter" role="group" aria-label="지역정보 카테고리">
         <button
           v-for="category in PLACE_CATEGORIES"
-          :key="category.value"
-          :class="{ active: selectedCategory === category.value }"
+          :key="category.value || 'all'"
+          :class="[
+            { active: selectedCategory === category.value },
+            category.value ? `category-filter-${category.value.toLowerCase()}` : 'category-filter-all'
+          ]"
           type="button"
           @click="selectedCategory = category.value"
         >
@@ -105,6 +108,9 @@ watch([selectedRegion, selectedCategory], loadPlaces)
               <p>{{ selectedPlace.description || '한국관광공사에서 제공한 지역 정보입니다.' }}</p>
               <small>📍 {{ selectedPlace.address || '주소 정보 없음' }}</small>
               <p v-if="selectedPlace.phone" class="detail-meta">📞 {{ selectedPlace.phone }}</p>
+              <p v-if="selectedPlace.source" class="detail-meta">🗂️ {{ selectedPlace.source }}</p>
+              <p v-if="selectedPlace.license" class="detail-meta">📜 {{ selectedPlace.license }}</p>
+              <p v-if="selectedPlace.collectedAt" class="detail-meta">📅 {{ selectedPlace.collectedAt }}</p>
             </div>
           </article>
           <template v-else>
