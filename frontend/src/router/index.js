@@ -8,8 +8,8 @@ import PostEditorView from '../views/PostEditorView.vue'
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
-    { path: '/', name: 'home', component: HomeView },
-    { path: '/posts', name: 'posts', component: BoardView },
+    { path: '/', alias: '/posts', name: 'posts', component: BoardView },
+    { path: '/explore', name: 'explore', component: HomeView },
     { path: '/posts/new', name: 'post-new', component: PostEditorView },
     { path: '/posts/:id', name: 'post-detail', component: PostDetailView },
     { path: '/posts/:id/edit', name: 'post-edit', component: PostEditorView },
@@ -18,4 +18,3 @@ const router = createRouter({
 })
 
 export default router
-

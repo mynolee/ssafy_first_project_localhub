@@ -25,11 +25,10 @@ function closeMenu() {
         <span></span><span></span><span></span>
       </button>
       <nav :class="['main-nav', { open: menuOpen }]" aria-label="주요 메뉴">
-        <RouterLink to="/" @click="closeMenu">서울 둘러보기</RouterLink>
-        <RouterLink to="/posts" @click="closeMenu">이웃 게시판</RouterLink>
+        <RouterLink to="/" @click="closeMenu">지역 게시판</RouterLink>
+        <RouterLink to="/explore" @click="closeMenu">전국 둘러보기</RouterLink>
         <RouterLink class="button button-small" to="/posts/new" @click="closeMenu">글쓰기</RouterLink>
       </nav>
     </div>
   </header>
 </template>
-

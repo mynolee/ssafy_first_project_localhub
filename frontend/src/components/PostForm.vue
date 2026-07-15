@@ -1,7 +1,7 @@
 <script setup>
 import { reactive, watch } from 'vue'
 
-import { POST_CATEGORIES } from '../constants/categories'
+import { POST_CATEGORIES, REGIONS } from '../constants/categories'
 
 const props = defineProps({
   initialPost: { type: Object, default: null },
@@ -11,6 +11,7 @@ const props = defineProps({
 })
 const emit = defineEmits(['submit'])
 const form = reactive({
+  region: 'SEOUL',
   category: 'TOURIST',
   title: '',
   content: '',
@@ -22,6 +23,7 @@ watch(
   () => props.initialPost,
   (post) => {
     if (!post) return
+    form.region = post.region
     form.category = post.category
     form.title = post.title
     form.content = post.content
@@ -38,6 +40,14 @@ function submit() {
 <template>
   <form class="post-form card" @submit.prevent="submit">
     <div class="form-row">
+      <div class="field">
+        <label for="region">지역</label>
+        <select id="region" v-model="form.region" required>
+          <option v-for="item in REGIONS.slice(1)" :key="item.value" :value="item.value">
+            {{ item.label }}
+          </option>
+        </select>
+      </div>
       <div class="field field-category">
         <label for="category">카테고리</label>
         <select id="category" v-model="form.category" required>
@@ -46,10 +56,10 @@ function submit() {
           </option>
         </select>
       </div>
-      <div class="field">
-        <label for="author">작성자</label>
-        <input id="author" v-model="form.author" maxlength="20" placeholder="익명" />
-      </div>
+    </div>
+    <div class="field">
+      <label for="author">작성자</label>
+      <input id="author" v-model="form.author" maxlength="20" placeholder="익명" />
     </div>
     <div class="field">
       <label for="title">제목</label>
@@ -58,7 +68,7 @@ function submit() {
     </div>
     <div class="field">
       <label for="content">내용</label>
-      <textarea id="content" v-model.trim="form.content" maxlength="5000" rows="12" placeholder="직접 경험한 서울의 장소와 팁을 나눠주세요." required></textarea>
+      <textarea id="content" v-model.trim="form.content" maxlength="5000" rows="12" placeholder="직접 경험한 우리 지역의 장소와 팁을 나눠주세요." required></textarea>
       <span class="character-count">{{ form.content.length }} / 5000</span>
     </div>
     <div class="field password-field">
@@ -75,4 +85,3 @@ function submit() {
     </div>
   </form>
 </template>
-

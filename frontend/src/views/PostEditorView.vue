@@ -32,7 +32,7 @@ async function save(payload) {
     const saved = editing.value
       ? await postsApi.update(route.params.id, payload)
       : await postsApi.create(payload)
-    router.push(`/posts/${saved.id}`)
+    router.push({ name: 'posts', query: { region: saved.region, saved: saved.id } })
   } catch (requestError) {
     error.value = errorMessage(requestError, '게시글을 저장하지 못했습니다.')
   } finally {
@@ -53,4 +53,3 @@ async function save(payload) {
     </div>
   </section>
 </template>
-

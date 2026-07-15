@@ -6,6 +6,7 @@ import { postsApi } from '../api/localhub'
 import { errorMessage } from '../api/client'
 import CategoryBadge from '../components/CategoryBadge.vue'
 import PasswordDialog from '../components/PasswordDialog.vue'
+import { REGION_LABELS } from '../constants/categories'
 
 const route = useRoute()
 const router = useRouter()
@@ -52,6 +53,7 @@ function formatDate(value) {
       <div v-else-if="error" class="notice error-notice">{{ error }} <RouterLink to="/posts">목록으로 돌아가기</RouterLink></div>
       <article v-else class="post-detail">
         <header>
+          <span class="region-badge">{{ REGION_LABELS[post.region] }}</span>
           <CategoryBadge :category="post.category" />
           <h1>{{ post.title }}</h1>
           <div class="detail-meta"><strong>{{ post.author }}</strong><span>·</span><time>{{ formatDate(post.createdAt) }}</time></div>
@@ -69,4 +71,3 @@ function formatDate(value) {
   </section>
   <PasswordDialog :open="dialogOpen" :busy="deleting" :error="deleteError" @close="dialogOpen = false" @confirm="removePost" />
 </template>
-

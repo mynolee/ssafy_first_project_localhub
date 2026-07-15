@@ -1,15 +1,19 @@
 import client from './client'
 
 export const placesApi = {
-  async list(category) {
-    const response = await client.get('/api/places', { params: category ? { category } : {} })
+  async list({ region = '', category = '', limit = 200 } = {}) {
+    const response = await client.get('/api/places', {
+      params: { region: region || undefined, category: category || undefined, limit },
+    })
     return response.data.data
   },
 }
 
 export const postsApi = {
-  async list(category) {
-    const response = await client.get('/api/posts', { params: category ? { category } : {} })
+  async list({ region = '', category = '' } = {}) {
+    const response = await client.get('/api/posts', {
+      params: { region: region || undefined, category: category || undefined },
+    })
     return response.data.data
   },
   async get(id) {
@@ -31,9 +35,8 @@ export const postsApi = {
 }
 
 export const chatApi = {
-  async send(message, history) {
-    const response = await client.post('/api/chat', { message, history })
+  async send(message, history, region = '') {
+    const response = await client.post('/api/chat', { message, history, region: region || null })
     return response.data.data
   },
 }
-
