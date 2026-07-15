@@ -4,15 +4,13 @@ export const POST_CATEGORIES = [
   { value: 'RESTAURANT', label: '맛집' },
   { value: 'FESTIVAL', label: '축제' },
   { value: 'CULTURE', label: '문화시설' },
-]
-
-export const PLACE_CATEGORIES = [
-  ...POST_CATEGORIES,
   { value: 'COURSE', label: '여행코스' },
   { value: 'LEISURE', label: '레포츠' },
   { value: 'SHOPPING', label: '쇼핑' },
   { value: 'ACCOMMODATION', label: '숙박' },
 ]
+
+export const PLACE_CATEGORIES = POST_CATEGORIES
 
 export const CATEGORY_LABELS = Object.fromEntries(
   PLACE_CATEGORIES.filter(({ value }) => value).map(({ value, label }) => [value, label]),

@@ -101,6 +101,7 @@ h1, h2, h3, p { margin-top: 0; }
 .place-card h3 { margin: 8px 0 7px; font-size: 1.12rem; }.place-card p { margin-bottom: 8px; color: var(--muted); font-size: .88rem; line-height: 1.55; }.place-card small { color: #84908a; }
 .category-badge { display: inline-block; padding: 4px 9px; border-radius: 999px; color: var(--green); background: #e6f0eb; font-size: .7rem; font-weight: 700; }
 .category-restaurant { color: #a8442d; background: #fde9e3; }.category-festival { color: #806016; background: #fff2ca; }.category-culture { color: #50438a; background: #ece9ff; }
+.category-tourist { color: var(--green); background: #e6f0eb; }.category-course { color: #2d6a8a; background: #e1eef5; }.category-leisure { color: #2d7a4f; background: #e1f2e7; }.category-shopping { color: #a8752d; background: #fbebd6; }.category-accommodation { color: #5a5a5a; background: #ececec; }
 .story-section { background: var(--green); color: white; }
 .story-section .eyebrow { color: #f3be83; }.story-section .text-link { color: white; }.story-section .section-heading { align-items: center; }
 .story-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }

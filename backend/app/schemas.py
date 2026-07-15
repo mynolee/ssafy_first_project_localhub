@@ -23,6 +23,10 @@ class PostCategory(str, Enum):
     RESTAURANT = "RESTAURANT"
     FESTIVAL = "FESTIVAL"
     CULTURE = "CULTURE"
+    COURSE = "COURSE"
+    LEISURE = "LEISURE"
+    ACCOMMODATION = "ACCOMMODATION"
+    SHOPPING = "SHOPPING"
 
 
 class RegionCode(str, Enum):

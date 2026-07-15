@@ -50,7 +50,7 @@ def find_context(
 
     if category:
         place_query = place_query.where(Place.category == category)
-        if category in {"RESTAURANT", "TOURIST", "FESTIVAL"}:
+        if category in {"RESTAURANT", "TOURIST", "FESTIVAL", "CULTURE", "SHOPPING", "ACCOMMODATION"}:
             post_query = post_query.where(Post.category == category)
     else:
         place_query = place_query.where(
