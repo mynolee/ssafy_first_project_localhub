@@ -3,11 +3,13 @@ import { nextTick, onMounted, ref } from 'vue'
 
 import { chatApi } from '../api/localhub'
 import { errorMessage } from '../api/client'
+import { REGIONS } from '../constants/categories'
 
 const STORAGE_KEY = 'localhub-chat-history'
 const open = ref(false)
 const input = ref('')
 const busy = ref(false)
+const selectedRegion = ref('')
 const messages = ref([])
 const messageList = ref(null)
 
@@ -43,7 +45,7 @@ async function send() {
   busy.value = true
   await scrollToBottom()
   try {
-    const result = await chatApi.send(content, history)
+    const result = await chatApi.send(content, history, selectedRegion.value)
     messages.value.push({ role: 'assistant', content: result.answer, items: result.matchedItems })
   } catch (error) {
     messages.value.push({ role: 'assistant', content: errorMessage(error, '잠시 후 다시 질문해 주세요.') })
@@ -67,6 +69,12 @@ async function send() {
         <button class="icon-button" type="button" aria-label="챗봇 닫기" @click="open = false">×</button>
       </header>
       <div ref="messageList" class="chat-messages" aria-live="polite">
+        <label class="chat-region">
+          <span>답변 지역</span>
+          <select v-model="selectedRegion">
+            <option v-for="region in REGIONS" :key="region.value" :value="region.value">{{ region.label }}</option>
+          </select>
+        </label>
         <article v-for="(message, index) in messages" :key="index" :class="['chat-message', message.role]">
           <p>{{ message.content }}</p>
           <div v-if="message.items?.length" class="chat-sources">
@@ -87,4 +95,3 @@ async function send() {
     </button>
   </aside>
 </template>
-
