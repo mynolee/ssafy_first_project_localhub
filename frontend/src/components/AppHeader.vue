@@ -1,10 +1,19 @@
 <script setup>
-import { ref } from 'vue'
+import { nextTick, ref } from 'vue'
+import { useRouter } from 'vue-router'
 
+const router = useRouter()
 const menuOpen = ref(false)
 
 function closeMenu() {
   menuOpen.value = false
+}
+
+async function goToSection(sectionId) {
+  closeMenu()
+  await router.push({ name: 'home', hash: `#${sectionId}` })
+  await nextTick()
+  document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth' })
 }
 </script>
 
@@ -25,8 +34,8 @@ function closeMenu() {
         <span></span><span></span><span></span>
       </button>
       <nav :class="['main-nav', { open: menuOpen }]" aria-label="주요 메뉴">
-        <RouterLink to="/" @click="closeMenu">지역 게시판</RouterLink>
-        <RouterLink to="/explore" @click="closeMenu">전국 둘러보기</RouterLink>
+        <button class="nav-section-button" type="button" @click="goToSection('community')">지역 게시판</button>
+        <button class="nav-section-button" type="button" @click="goToSection('discover')">지역 지도</button>
         <RouterLink class="button button-small" to="/posts/new" @click="closeMenu">글쓰기</RouterLink>
       </nav>
     </div>

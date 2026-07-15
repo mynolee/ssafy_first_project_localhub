@@ -47,7 +47,7 @@ watch([selectedRegion, selectedCategory], () => {
 </script>
 
 <template>
-  <section class="page-hero compact main-board-hero">
+  <section id="community" class="page-hero compact main-board-hero">
     <div class="container page-hero-inner">
       <div><p class="eyebrow">LOCAL COMMUNITY</p><h1>지역 게시판</h1><p>전국에서 발견한 좋은 장소와 유용한 경험을 익명으로 나눠보세요.</p></div>
       <RouterLink class="button" to="/posts/new">새 이야기 쓰기</RouterLink>
