@@ -28,8 +28,8 @@ async function goToCompose() {
   <header class="site-header">
     <div class="container header-inner">
       <RouterLink class="brand" to="/" @click="closeMenu">
-        <span class="brand-mark">L</span>
-        <span>LocalHub</span>
+        <span class="brand-mark">여</span>
+        <span>여행씰</span>
       </RouterLink>
       <button
         class="menu-button"
