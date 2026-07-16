@@ -2,7 +2,7 @@ import uuid
 from pathlib import Path
 
 from fastapi import APIRouter, Depends, File, UploadFile, status
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.core.config import get_settings
@@ -33,6 +33,7 @@ CONTENT_TYPE_EXTENSIONS = {
     "image/gif": ".gif",
 }
 MAX_IMAGE_SIZE = 5 * 1024 * 1024
+MAX_POSTS_PER_CATEGORY = 30
 
 
 def get_post_or_raise(session: Session, post_id: int) -> Post:
@@ -47,6 +48,27 @@ def verify_password(post: Post, password: str) -> None:
         raise ApiError(403, "수정용 비밀번호가 일치하지 않습니다.", "INVALID_PASSWORD")
 
 
+def enforce_category_limit(session: Session, category: str) -> None:
+    count = session.scalar(select(func.count()).select_from(Post).where(Post.category == category))
+    overflow = count - MAX_POSTS_PER_CATEGORY
+    if overflow <= 0:
+        return
+
+    oldest_posts = session.scalars(
+        select(Post)
+        .where(Post.category == category)
+        .order_by(Post.created_at.asc(), Post.id.asc())
+        .limit(overflow)
+    ).all()
+
+    upload_dir = get_settings().resolved_uploads_root
+    for old_post in oldest_posts:
+        if old_post.image_url:
+            (upload_dir / Path(old_post.image_url).name).unlink(missing_ok=True)
+        session.delete(old_post)
+    session.commit()
+
+
 @router.post("", status_code=status.HTTP_201_CREATED, response_model=ApiResponse[PostDetailResponse])
 def create_post(
     request: PostCreateRequest,
@@ -56,6 +78,7 @@ def create_post(
     session.add(post)
     session.commit()
     session.refresh(post)
+    enforce_category_limit(session, post.category)
     return ApiResponse(data=post, message="게시글 작성 성공")
 
 
