@@ -12,9 +12,6 @@ __pycache__/
 venv/
 
 # Database and runtime data
-*.db
-*.sqlite
-*.sqlite3
 /backend/uploads/
 
 # Node / Vue

@@ -43,7 +43,10 @@ function clearSelection() {
 }
 
 onMounted(loadPlaces)
-watch([selectedRegion, selectedCategory], loadPlaces)
+watch([selectedRegion, selectedCategory], () => {
+  clearSelection()
+  loadPlaces()
+})
 </script>
 
 <template>
