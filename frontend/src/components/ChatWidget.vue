@@ -58,7 +58,7 @@ async function send() {
 </script>
 
 <template>
-  <aside :class="['chat-widget', { open }]" aria-label="여행씰 챗봇">
+  <aside :class="['chat-widget', { open }]" aria-label="In지도 챗봇">
     <section v-if="open" class="chat-panel">
       <header class="chat-header">
         <div>
