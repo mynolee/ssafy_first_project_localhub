@@ -385,7 +385,7 @@ def collect_busan(
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description="서울·부산 음식점 공공데이터를 여행씰 JSON으로 수집합니다."
+        description="서울·부산 음식점 공공데이터를 In지도 JSON으로 수집합니다."
     )
     subparsers = parser.add_subparsers(dest="provider", required=True)
     seoul_parser = subparsers.add_parser("seoul", help="서울 영업중 일반음식점 수집")
