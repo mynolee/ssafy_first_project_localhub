@@ -27,6 +27,10 @@ CATEGORY_CODES = {
     "39": "RESTAURANT",
 }
 
+DEFAULT_SOURCE = "한국관광공사 Tour API 4.0"
+DEFAULT_LICENSE = "공공누리 제3유형 (출처 표시 + 변경 금지)"
+DEFAULT_COLLECTED_AT = "2026-07-11"
+
 
 def _optional_text(value: Any) -> str | None:
     text = str(value or "").strip()
@@ -61,8 +65,11 @@ def _optional_float(value: Any) -> float | None:
         return None
 
 
-def _tour_api_records(data_root: Path) -> list[dict[str, Any]]:
+def _data_records(
+    data_root: Path,
+) -> tuple[list[dict[str, Any]], dict[str, set[str]]]:
     records: list[dict[str, Any]] = []
+    synchronized_source_ids: dict[str, set[str]] = {}
     for json_file in sorted(data_root.glob("**/*.json")):
         payload = json.loads(json_file.read_text(encoding="utf-8"))
         if not isinstance(payload, dict) or "items" not in payload:
@@ -71,33 +78,42 @@ def _tour_api_records(data_root: Path) -> list[dict[str, Any]]:
         category = CATEGORY_CODES.get(str(payload.get("contentTypeId")))
         if not region or not category:
             continue
+        source_id_prefix = _optional_text(payload.get("sourceIdPrefix")) or region
+        source = _optional_text(payload.get("source")) or DEFAULT_SOURCE
+        license_name = _optional_text(payload.get("license")) or DEFAULT_LICENSE
+        collected_at = _optional_text(payload.get("collectedAt")) or DEFAULT_COLLECTED_AT
+        if payload.get("sync") is True:
+            synchronized_source_ids.setdefault(source_id_prefix, set())
         for item in payload.get("items", []):
             content_id = _optional_text(item.get("contentid"))
             title = _optional_text(item.get("title"))
             if not content_id or not title or not _is_valid_place_name(title):
                 continue
+            source_id = f"{source_id_prefix}:{content_id}"
+            if source_id_prefix in synchronized_source_ids:
+                synchronized_source_ids[source_id_prefix].add(source_id)
             address_parts = filter(
                 None,
                 (_optional_text(item.get("addr1")), _optional_text(item.get("addr2"))),
             )
             records.append(
                 {
-                    "source_id": f"{region}:{content_id}",
+                    "source_id": source_id,
                     "region": region,
                     "name": title,
                     "category": category,
                     "address": " ".join(address_parts) or None,
                     "latitude": _optional_float(item.get("mapy")),
                     "longitude": _optional_float(item.get("mapx")),
-                    "description": None,
+                    "description": _optional_text(item.get("description")),
                     "image_url": _optional_text(item.get("firstimage")),
                     "phone": _optional_text(item.get("tel")),
-                    "source": "한국관광공사 Tour API 4.0",
-                    "license": "공공누리 제3유형 (출처 표시 + 변경 금지)",
-                    "collected_at": "2026-07-11",
+                    "source": source,
+                    "license": license_name,
+                    "collected_at": collected_at,
                 }
             )
-    return records
+    return records, synchronized_source_ids
 
 
 def _legacy_records(data_root: Path) -> list[dict[str, Any]]:
@@ -111,19 +127,37 @@ def _legacy_records(data_root: Path) -> list[dict[str, Any]]:
 
 
 def seed_places(session: Session, data_root: Path) -> int:
-    records = _tour_api_records(data_root) or _legacy_records(data_root)
+    records, synchronized_source_ids = _data_records(data_root)
+    records = records or _legacy_records(data_root)
     if not records:
         return 0
 
     # Remove corrupted records from database
-    from app.models import Place
     suspicious_names = ['국호', '국도', '급치산', '037', '9999']
     for pattern in suspicious_names:
         session.execute(delete(Place).where(Place.name.like(f"%{pattern}%")))
-    
+
     session.execute(delete(Place).where(Place.source_id.like("SAMPLE-%")))
-    existing_ids = set(session.scalars(select(Place.source_id)))
-    new_records = [record for record in records if record["source_id"] not in existing_ids]
+    existing_places = {
+        place.source_id: place for place in session.scalars(select(Place)).all()
+    }
+
+    for prefix, desired_ids in synchronized_source_ids.items():
+        namespace = f"{prefix}:"
+        for source_id, place in existing_places.items():
+            if source_id.startswith(namespace) and source_id not in desired_ids:
+                session.delete(place)
+
+    new_records: list[dict[str, Any]] = []
+    for record in records:
+        existing = existing_places.get(record["source_id"])
+        if existing is None:
+            new_records.append(record)
+            continue
+        for field, value in record.items():
+            if field != "source_id" and getattr(existing, field) != value:
+                setattr(existing, field, value)
+
     if new_records:
         session.execute(insert(Place), new_records)
     session.commit()

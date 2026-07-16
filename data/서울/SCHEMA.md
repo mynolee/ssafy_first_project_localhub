@@ -1,6 +1,6 @@
-# TourAPI 4.0 원본 데이터 스키마
+# 지역정보 JSON 스키마
 
-한국관광공사 Tour API(TourAPI 4.0)에서 수집한 원본 JSON 파일의 필드 정의.
+한국관광공사 TourAPI 파일과 여행씰 형식으로 정규화한 서울시 음식점 파일의 필드 정의.
 
 ---
 
@@ -13,6 +13,19 @@
 | `contentTypeId` | string | 콘텐츠 유형 ID (아래 코드 참조) |
 | `total` | integer | 전체 항목 수 |
 | `items` | object[] | POI 항목 배열 |
+
+서울시 음식점 파일은 다음 메타데이터도 포함합니다.
+
+| 필드 | 타입 | 설명 |
+|------|------|------|
+| `sourceIdPrefix` | string | 공급자별 고유 ID 접두사 |
+| `source` | string | 데이터셋 이름 |
+| `sourceUrl` | string | 공식 데이터셋 페이지 |
+| `license` | string | 데이터 이용 라이선스 |
+| `collectedAt` | string | 수집일(YYYY-MM-DD) |
+| `totalAvailable` | integer | API가 제공한 영업 중 전체 건수 |
+| `truncated` | boolean | 전체 중 일부만 저장했는지 여부 |
+| `sync` | boolean | 시딩 시 같은 공급자 데이터와 동기화할지 여부 |
 
 ## contentTypeId 코드
 
@@ -58,12 +71,14 @@
 | `cpyrhtDivCd` | string | 저작권 구분 코드 |
 | `createdtime` | string | 최초 등록 시각 (YYYYMMDDHHmmss) |
 | `modifiedtime` | string | 최종 수정 시각 (YYYYMMDDHHmmss) |
+| `description` | string | 업태·주요 음식 등 정규화한 설명(서울시 음식점) |
 
 ---
 
 ## 주의 사항
 
 - `mapx` / `mapy` 는 string 타입으로 저장됨. 사용 시 float 변환 필요.
+- `서울_음식점.json`의 좌표는 원본 EPSG:5174 `X`/`Y`를 WGS84로 변환한 값임.
 - `firstimage` 가 빈 문자열(`""`)인 경우 이미지 없음을 의미.
 - `addr1` 이 빈 문자열인 경우 주소 정보 미제공.
 - `cat1~3`, `lclsSystm1~3` 코드 정의는 상위 디렉토리의 `lclsSystemCode.json` 참조.

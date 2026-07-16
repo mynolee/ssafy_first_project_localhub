@@ -80,6 +80,9 @@ class PlaceResponse(CamelModel):
     description: str | None
     image_url: str | None
     phone: str | None
+    source: str
+    license: str | None
+    collected_at: str | None
 
 
 class PostCreateRequest(CamelModel):

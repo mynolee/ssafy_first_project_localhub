@@ -12,6 +12,7 @@ __pycache__/
 venv/
 
 # Database and runtime data
+/backend/localhub.db
 /backend/uploads/
 
 # Node / Vue
