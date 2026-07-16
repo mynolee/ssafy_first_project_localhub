@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import DateTime, Float, String, Text, func
+from sqlalchemy import DateTime, Float, Integer, String, Text, func
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.database import Base
@@ -35,6 +35,9 @@ class Post(Base):
     content: Mapped[str] = mapped_column(Text)
     author: Mapped[str] = mapped_column(String(20), default="익명")
     password: Mapped[str] = mapped_column(String(20))
+    view_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0, server_default="0")
+    like_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0, server_default="0")
+    image_url: Mapped[str | None] = mapped_column(String(300))
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(
         DateTime,

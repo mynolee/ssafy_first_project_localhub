@@ -3,11 +3,21 @@ import { onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
 import { postsApi } from '../api/localhub'
-import { errorMessage } from '../api/client'
+import { errorMessage, resolveImageUrl } from '../api/client'
 import CategoryBadge from '../components/CategoryBadge.vue'
 import PasswordDialog from '../components/PasswordDialog.vue'
 import { POST_CATEGORIES, REGION_LABELS, REGIONS } from '../constants/categories'
 import PostForm from '../components/PostForm.vue'
+
+const LIKED_STORAGE_KEY = 'localhub-liked-posts'
+
+function loadLikedIds() {
+  try {
+    return new Set(JSON.parse(localStorage.getItem(LIKED_STORAGE_KEY)) || [])
+  } catch {
+    return new Set()
+  }
+}
 
 const route = useRoute()
 const router = useRouter()
@@ -33,6 +43,9 @@ const dialogOpen = ref(false)
 const deleting = ref(false)
 const deleteError = ref('')
 
+const likedIds = ref(loadLikedIds())
+const likeBusy = ref(false)
+
 async function loadPosts() {
   loading.value = true
   error.value = ''
@@ -48,11 +61,12 @@ async function loadPosts() {
   }
 }
 
-async function createPost(payload) {
+async function createPost(payload, imageFile) {
   formBusy.value = true
   formError.value = ''
   try {
-    await postsApi.create(payload)
+    const created = await postsApi.create(payload)
+    if (imageFile) await postsApi.uploadImage(created.id, imageFile)
     showForm.value = false
     await loadPosts()
   } catch (requestError) {
@@ -62,11 +76,17 @@ async function createPost(payload) {
   }
 }
 
+function syncPostInList(id, patch) {
+  const target = posts.value.find((post) => post.id === id)
+  if (target) Object.assign(target, patch)
+}
+
 async function loadDetail(id) {
   detailLoading.value = true
   detailError.value = ''
   try {
     activePost.value = await postsApi.get(id)
+    syncPostInList(id, { viewCount: activePost.value.viewCount, likeCount: activePost.value.likeCount })
   } catch (requestError) {
     detailError.value = errorMessage(requestError, '게시글을 불러오지 못했습니다.')
   } finally {
@@ -104,11 +124,15 @@ function cancelEdit() {
   router.replace(`/posts/${expandedId.value}`)
 }
 
-async function saveEdit(payload) {
+async function saveEdit(payload, imageFile) {
   editBusy.value = true
   editError.value = ''
   try {
     activePost.value = await postsApi.update(expandedId.value, payload)
+    if (imageFile) {
+      const imageResult = await postsApi.uploadImage(expandedId.value, imageFile)
+      activePost.value = { ...activePost.value, imageUrl: imageResult.imageUrl }
+    }
     editingId.value = null
     router.replace(`/posts/${expandedId.value}`)
     await loadPosts()
@@ -116,6 +140,26 @@ async function saveEdit(payload) {
     editError.value = errorMessage(requestError, '게시글을 저장하지 못했습니다.')
   } finally {
     editBusy.value = false
+  }
+}
+
+async function toggleLike(post) {
+  if (likeBusy.value) return
+  likeBusy.value = true
+  const liked = likedIds.value.has(post.id)
+  try {
+    const result = liked ? await postsApi.unlike(post.id) : await postsApi.like(post.id)
+    syncPostInList(post.id, { likeCount: result.likeCount })
+    if (activePost.value?.id === post.id) activePost.value.likeCount = result.likeCount
+    const next = new Set(likedIds.value)
+    if (liked) next.delete(post.id)
+    else next.add(post.id)
+    likedIds.value = next
+    localStorage.setItem(LIKED_STORAGE_KEY, JSON.stringify([...next]))
+  } catch (requestError) {
+    detailError.value = errorMessage(requestError, '좋아요 처리에 실패했습니다.')
+  } finally {
+    likeBusy.value = false
   }
 }
 
@@ -184,7 +228,16 @@ watch([selectedRegion, selectedCategory], () => {
       </div>
       <div class="board-toolbar">
         <div class="filter-pills" role="group" aria-label="게시판 카테고리">
-          <button v-for="category in POST_CATEGORIES" :key="category.value" :class="{ active: selectedCategory === category.value }" type="button" @click="selectedCategory = category.value">{{ category.label }}</button>
+          <button
+            v-for="category in POST_CATEGORIES"
+            :key="category.value"
+            :class="[
+              { active: selectedCategory === category.value },
+              category.value ? `category-filter-${category.value.toLowerCase()}` : 'category-filter-all'
+            ]"
+            type="button"
+            @click="selectedCategory = category.value"
+          >{{ category.label }}</button>
         </div>
         <span>총 {{ posts.length }}개의 이야기</span>
       </div>
@@ -207,7 +260,11 @@ watch([selectedRegion, selectedCategory], () => {
               <div class="post-badges"><span class="region-badge">{{ REGION_LABELS[post.region] }}</span><CategoryBadge :category="post.category" /></div>
               <h2>{{ post.title }}</h2>
             </div>
-            <div class="post-meta"><span>{{ post.author }}</span><time>{{ formatDate(post.createdAt) }}</time></div>
+            <div class="post-meta">
+              <span>{{ post.author }}</span>
+              <time>{{ formatDate(post.createdAt) }}</time>
+              <span class="post-stats"><span>조회 {{ post.viewCount }}</span><span>좋아요 {{ post.likeCount }}</span></span>
+            </div>
             <span class="row-arrow">{{ expandedId === post.id ? '↑' : '→' }}</span>
           </button>
 
@@ -225,9 +282,22 @@ watch([selectedRegion, selectedCategory], () => {
                 @cancel="cancelEdit"
               />
               <template v-else>
-                <div class="detail-meta"><strong>{{ activePost.author }}</strong><span>·</span><time>{{ formatDate(activePost.createdAt) }}</time></div>
+                <div class="detail-meta">
+                  <strong>{{ activePost.author }}</strong><span>·</span><time>{{ formatDate(activePost.createdAt) }}</time>
+                  <span>·</span><span>조회 {{ activePost.viewCount }}</span>
+                </div>
+                <img v-if="activePost.imageUrl" :src="resolveImageUrl(activePost.imageUrl)" alt="게시글 첨부 이미지" class="post-image" />
                 <div class="post-content">{{ activePost.content }}</div>
                 <div class="post-actions">
+                  <button
+                    class="button like-button"
+                    :class="{ active: likedIds.has(post.id) }"
+                    type="button"
+                    :disabled="likeBusy"
+                    @click="toggleLike(post)"
+                  >
+                    {{ likedIds.has(post.id) ? '♥' : '♡' }} 좋아요 {{ activePost.likeCount }}
+                  </button>
                   <button class="button button-secondary" type="button" @click="startEdit">수정</button>
                   <button class="button button-danger-ghost" type="button" @click="openDeleteDialog">삭제</button>
                 </div>

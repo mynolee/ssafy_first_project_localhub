@@ -16,6 +16,7 @@ venv/
 *.sqlite
 *.sqlite3
 /data/
+/backend/uploads/
 
 # Node / Vue
 node_modules/
@@ -25,6 +26,7 @@ dist/
 # IDE and operating system
 .idea/
 .vscode/
+.claude/
 .DS_Store
 Thumbs.db
 

@@ -32,6 +32,22 @@ export const postsApi = {
     const response = await client.delete(`/api/posts/${id}`, { data: { password } })
     return response.data.data
   },
+  async like(id) {
+    const response = await client.post(`/api/posts/${id}/like`)
+    return response.data.data
+  },
+  async unlike(id) {
+    const response = await client.delete(`/api/posts/${id}/like`)
+    return response.data.data
+  },
+  async uploadImage(id, file) {
+    const formData = new FormData()
+    formData.append('file', file)
+    const response = await client.post(`/api/posts/${id}/image`, formData, {
+      headers: { 'Content-Type': undefined },
+    })
+    return response.data.data
+  },
 }
 
 export const chatApi = {

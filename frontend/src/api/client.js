@@ -15,4 +15,9 @@ export function errorMessage(error, fallback = '요청을 처리하지 못했습
   return error.response?.data?.message || fallback
 }
 
+export function resolveImageUrl(path) {
+  if (!path) return null
+  return `${apiBaseUrl}${path}`
+}
+
 export default client
