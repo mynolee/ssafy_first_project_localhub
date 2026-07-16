@@ -130,9 +130,9 @@ def find_context(
 
 def fallback_answer(context: SearchContext) -> str:
     if not context.matched_items:
-        return "제공된 서울 지역 정보와 게시글에서 질문에 맞는 근거를 찾지 못했어요. 다른 키워드로 질문해 주세요."
+        return "제공된 전국 지역 정보와 게시글에서 질문에 맞는 근거를 찾지 못했어요. 다른 키워드로 질문해 주세요."
     titles = ", ".join(item.title for item in context.matched_items)
-    return f"현재 제공된 LocalHub 데이터에서는 {titles} 정보를 확인할 수 있어요. 자세한 내용은 카드나 게시글에서 확인해 주세요."
+    return f"현재 제공된 여행씰 데이터에서는 {titles} 정보를 확인할 수 있어요. 자세한 내용은 카드나 게시글에서 확인해 주세요."
 
 
 async def create_answer(
@@ -145,7 +145,7 @@ async def create_answer(
         return fallback_answer(context)
 
     system_prompt = (
-        "당신은 서울 지역 정보 도우미 LocalHub입니다. 아래 제공 데이터 안에서만 한국어로 답하세요. "
+        "당신은 전국 지역 정보 도우미 여행씰입니다. 아래 제공 데이터 안에서만 한국어로 답하세요. "
         "근거가 없으면 정보가 없다고 명확히 말하세요. 게시글의 비밀번호나 추측한 정보는 절대 언급하지 마세요.\n\n"
         f"제공 데이터:\n{context.prompt_text or '관련 데이터 없음'}"
     )
