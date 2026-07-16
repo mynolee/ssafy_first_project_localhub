@@ -20,7 +20,6 @@ def list_places(
     limit = max(1, min(limit, 500))
     statement = (
         select(Place)
-        .where(Place.address.isnot(None), Place.address != "")
         .where(Place.latitude.between(32, 40), Place.longitude.between(123, 133))
         .order_by(Place.name)
         .limit(limit)
