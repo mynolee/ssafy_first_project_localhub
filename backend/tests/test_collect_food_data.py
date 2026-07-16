@@ -1,10 +1,12 @@
 import json
 from pathlib import Path
+from urllib.error import URLError
 
 import pytest
 
 from tools.collect_food_data import (
     CollectionError,
+    _request_json,
     collect_busan,
     collect_seoul,
     normalize_busan_item,
@@ -16,6 +18,18 @@ class FakeTransformer:
     def transform(self, x: float, y: float) -> tuple[float, float]:
         assert (x, y) == (198810.7659, 448800.9733)
         return 126.9823456, 37.5432109
+
+
+def test_request_error_does_not_expose_key_url(monkeypatch: pytest.MonkeyPatch) -> None:
+    def fail_request(*_args, **_kwargs):
+        raise URLError("https://example.com/private-api-key")
+
+    monkeypatch.setattr("tools.collect_food_data.urlopen", fail_request)
+    with pytest.raises(CollectionError) as captured:
+        _request_json("https://example.com/private-api-key")
+
+    assert "private-api-key" not in str(captured.value)
+    assert captured.value.__suppress_context__ is True
 
 
 def test_normalize_seoul_item_maps_active_restaurant() -> None:

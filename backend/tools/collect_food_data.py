@@ -78,9 +78,15 @@ def _request_json(url: str) -> dict[str, Any]:
     try:
         with urlopen(request, timeout=30) as response:
             return json.loads(response.read().decode("utf-8"))
-    except (HTTPError, URLError, TimeoutError, json.JSONDecodeError) as error:
+    except (
+        HTTPError,
+        URLError,
+        TimeoutError,
+        UnicodeDecodeError,
+        json.JSONDecodeError,
+    ):
         # Do not include the requested URL because the API key is part of it.
-        raise CollectionError("공공데이터 API 요청에 실패했습니다.") from error
+        raise CollectionError("공공데이터 API 요청에 실패했습니다.") from None
 
 
 def _seoul_url(api_key: str, start: int, end: int) -> str:

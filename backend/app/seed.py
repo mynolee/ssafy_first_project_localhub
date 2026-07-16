@@ -128,9 +128,10 @@ def _legacy_records(data_root: Path) -> list[dict[str, Any]]:
 
 def seed_places(session: Session, data_root: Path) -> int:
     records, synchronized_source_ids = _data_records(data_root)
-    records = records or _legacy_records(data_root)
     if not records:
-        return 0
+        records = _legacy_records(data_root)
+        if not records and not synchronized_source_ids:
+            return 0
 
     # Remove corrupted records from database
     suspicious_names = ['국호', '국도', '급치산', '037', '9999']

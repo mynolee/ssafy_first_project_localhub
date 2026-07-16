@@ -78,3 +78,28 @@ def test_seed_uses_payload_metadata_updates_and_synchronizes(tmp_path: Path) -> 
     assert current.source == "서울특별시 일반음식점 인허가 정보"
     assert current.license == "공공누리 제1유형 (출처 표시)"
     assert current.collected_at == "2026-07-16"
+
+
+def test_seed_empty_sync_snapshot_removes_previous_provider_rows(tmp_path: Path) -> None:
+    payload = {
+        "region": "서울",
+        "contentType": "음식점",
+        "contentTypeId": 39,
+        "sourceIdPrefix": "SEOUL_LOCALDATA",
+        "sync": True,
+        "items": [],
+    }
+    data_file = tmp_path / "empty.json"
+    data_file.write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
+
+    engine = create_engine("sqlite://")
+    Base.metadata.create_all(engine)
+    with Session(engine) as session:
+        session.add(_place("SEOUL_LOCALDATA:old", "이전 식당"))
+        session.commit()
+
+        inserted = seed_places(session, tmp_path)
+        remaining = session.scalars(select(Place)).all()
+
+    assert inserted == 0
+    assert remaining == []
