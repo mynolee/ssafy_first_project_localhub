@@ -18,7 +18,13 @@ def list_places(
     session: Session = Depends(get_db),
 ) -> ApiResponse[list[PlaceResponse]]:
     limit = max(1, min(limit, 500))
-    statement = select(Place).order_by(Place.name).limit(limit)
+    statement = (
+        select(Place)
+        .where(Place.address.isnot(None), Place.address != "")
+        .where(Place.latitude.between(32, 40), Place.longitude.between(123, 133))
+        .order_by(Place.name)
+        .limit(limit)
+    )
     if region:
         statement = statement.where(Place.region == region.value)
     if category:
