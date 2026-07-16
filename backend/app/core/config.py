@@ -5,7 +5,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    app_name: str = "여행씰 API"
+    app_name: str = "In지도 API"
     database_url: str = "sqlite:///./localhub.db"
     frontend_origin: str = "http://localhost:5173"
     openai_api_key: str = ""
