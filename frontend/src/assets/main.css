@@ -104,7 +104,7 @@ h1, h2, h3, p { margin-top: 0; }
 .region-filter button:hover, .region-filter button.active { color: #fff; background: var(--brand); }
 .region-badge { display: inline-block; padding: 4px 9px; border-radius: 999px; color: #7a5712; background: #fff0bd; font-size: .7rem; font-weight: 700; }
 .post-badges { display: flex; flex-shrink: 0; gap: 6px; }
-.map-layout { display: grid; grid-template-columns: 1.25fr .75fr; gap: 24px; margin-top: 28px; }
+.map-layout { display: grid; grid-template-columns: 1.25fr .75fr; gap: 24px; margin-top: 28px; align-items: start; }
 .place-map { z-index: 1; min-height: 590px; overflow: hidden; border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); }
 .place-list { display: flex; flex-direction: column; gap: 12px; max-height: 590px; min-height: 590px; padding-right: 5px; overflow-y: auto; }
 .place-list--selected { justify-content: flex-start; }
